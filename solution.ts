@@ -1,46 +1,107 @@
-// console.log("STARTING PROJECT")
+{
 
-class Task {
-    id:number 
-    name:string
-   constructor(id,name){
-       this.id=id
-       this.name=name
-   }
-  
-}
+    let arr: any = [];
+    window.onload = (): void => {
+        class Task {
+            public id: number;
+            public body: string;
+            public done: boolean;
 
-let count:number =0
-HTMLElement;let btn:any=document.getElementById("todo-save")
-HTMLElement; let inputTask:any=document.getElementById("todo-item")
-HTMLElement; let list:any=document.getElementById("todo-list")
+            constructor(id, body, done) {
+                this.id = id;
+                this.body = body;
+                this.done = done;
+            }
+        }
 
-let addTask=()=>{
-    console.log(inputTask.value)
-    let newTask= new Task(count,inputTask.value)
-    count++;
-    let task=`<div class="todo-item">${newTask.value}<button>v</button></div>`
-    list.innerHTML+=task
-}
-// console.log(btn)
+        let count: any
+        if (!localStorage.getItem("count")) {
+            localStorage.setItem("count", "0")
+            count = 0
+        }
+        else count = Number(localStorage.getItem("count"));
 
-btn.addEventListener("click",(event)=>{
-    event.preventDefault()
-   addTask()
-})
 
-let clearTask=()=>{
-    let delTask=document.getElementById("todo-delcom")
-    let divTaskDone=document.getElementsByClassName("todo-item.cx")
-    delTask.addEventListener("click",()=>{
-        if(divTaskDone){
-        divTaskDone.forEach(element => {
-            console.log(element)
+
+        let btn: any = <HTMLInputElement>document.getElementById("todo-save")
+
+        let inputTask: any = <HTMLInputElement>document.getElementById("todo-item");
+
+        let list: any = <HTMLInputElement>document.getElementById("todo-list");
+
+        if (localStorage.getItem("task")){
+            arr = JSON.parse(localStorage.getItem("task"))
+            arr.forEach(({id,body,done}) => taskToHtml(id,body,done));
+        
+        }
+
+        function taskToHtml(id, body, done) {
+            list.innerHTML += `
+                <div class="todo-row">
+                    <div class="todo-item ${(done)?"done":""}" id=${id}>${body}</div>
+                    <input type="button" 
+                        onclick="toDone(${id})" 
+                        class="todo-ok todo-wrap" value="v"/>
+                </div>`;
+        }
+
+        function addTask() {
+
+            let newTask = new Task(count, inputTask.value, false);
+            arr.push(newTask);
+            taskToHtml(count, inputTask.value, false)
+            count++;
+            localStorage.setItem("task", JSON.stringify(arr));
+            localStorage.setItem("count", count)
+            inputTask.value = ""
+        };
+
+
+        btn.addEventListener("click", (event) => {
+            event.preventDefault();
+            addTask();
         });
-    }
-    })
-}
 
-let deletAll=()=>{
-    list.innerHTML=""
+
+
+        let delAllBtn = <HTMLInputElement>document.getElementById("todo-delall");
+
+        delAllBtn.addEventListener("click", () => {
+            list.innerHTML = "";
+            arr = [];
+            localStorage.setItem("count", "0")
+            count = 0;
+            localStorage.setItem("task", JSON.stringify(arr));
+        });
+
+        let deletCompBtn = <HTMLInputElement>document.getElementById("todo-delcom");
+
+
+        deletCompBtn.addEventListener("click", () => {
+            let newArr = []
+            list.innerHTML = ""
+            arr = JSON.parse(localStorage.getItem("task"))
+            arr.forEach(element => {
+                if (!element.done) {
+                    newArr.push(element)
+                    taskToHtml(element.id,element.body,element.done)
+                }
+            });
+            localStorage.setItem("task", JSON.stringify(newArr))
+            arr = JSON.parse(localStorage.getItem("task"))
+        });
+
+    };
+
+    function toDone(id: any) {
+        console.log(id)
+        document.getElementById(id).classList.add("done");
+        arr.forEach(element => {
+
+            if (element.id == id) element.done = true;
+
+        });
+
+        localStorage.setItem("task", JSON.stringify(arr))
+    }
 }
